@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+    <div class="bg-gradient"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <main class="container">
+        <div class="glass-card">
+
+            <div class="header">
+                <div class="logo-icon">🔗</div>
+                <h1>URL Shortener</h1>
+                <p>Сократите любую ссылку за секунду</p>
+            </div>
+
+            <form id="shortenForm" onsubmit="handleSubmit(event)">
+                <div class="input-group">
+                    <label for="urlInput">Ссылка</label>
+                    <div class="input-wrapper">
+                        <input
+                            type="text"
+                            id="urlInput"
+                            class="input-field"
+                            placeholder="https://example.com/very/long/url..."
+                            required
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                        <span class="icon">🌐</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="customCode">Кастомный код <span style="opacity: 0.5">(необязательно)</span></label>
+                    <div class="input-wrapper">
+                        <input
+                            type="text"
+                            id="customCode"
+                            class="input-field"
+                            placeholder="my-cool-link"
+                            autocomplete="off"
+                            spellcheck="false"
+                            maxlength="20"
+                        >
+                        <span class="icon">✏️</span>
+                    </div>
+                    <div class="hint">3–20 символов: буквы, цифры и дефис</div>
+                </div>
+
+                <button type="submit" class="btn-shorten" id="submitBtn">
+                    <span class="btn-text">⚡ Сократить ссылку</span>
+                    <div class="spinner"></div>
+                </button>
+
+            </form>
+
+            <div class="result-container scroll-anchor" id="resultContainer">
+                <div class="result-card">
+                    <div class="result-label">✅ Ваша короткая ссылка</div>
+                    <div class="result-url">
+                        <a id="shortUrl" href="#" target="_blank"></a>
+                        <button class="btn-copy" id="copyBtn" onclick="copyToClipboard()" type="button">
+                            <span id="copyIcon">📋</span>
+                            <span class="tooltip">Скопировано!</span>
+                        </button>
+                    </div>
+                    <div class="original-url" id="originalUrl"></div>
+                </div>
+            </div>
+
+            <div class="error-container" id="errorContainer">
+                <div class="error-card" id="errorCard">
+                    <span>⚠️</span>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+
+    <footer class="footer">
+        <a href="https://github.com/ternopolskiy" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47
+                7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37
+                -2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68
+                -.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87
+                2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64
+                -3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+                0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09
+                2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08
+                2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65
+                3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01
+                2.14 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42
+                -3.58-8-8-8z"/>
+            </svg>
+            Made by ternopolskiy
+        </a>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+
+</body>
+</html>
