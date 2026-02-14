@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -155,3 +155,66 @@ async def change_password(
     db.commit()
 
     return {"detail": "Password changed successfully"}
+
+
+@router.get("/me/activity")
+async def get_user_activity(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    days: int = Query(365, ge=1, le=365),
+):
+    """
+    Get user activity heatmap data.
+    Returns daily link creation count for the past year.
+    """
+    from datetime import datetime, timedelta
+    from app.models import URL
+
+    # Calculate date range
+    end_date = datetime.utcnow().date()
+    start_date = end_date - timedelta(days=days - 1)
+
+    # Get links grouped by creation date
+    links_by_date = (
+        db.query(
+            func.date(URL.created_at).label("date"),
+            func.count(URL.id).label("count"),
+        )
+        .filter(
+            URL.user_id == current_user.id,
+            func.date(URL.created_at) >= start_date,
+        )
+        .group_by(func.date(URL.created_at))
+        .all()
+    )
+
+    # Create a dictionary for quick lookup
+    activity_dict = {str(row.date): row.count for row in links_by_date}
+
+    # Fill in all dates with 0 for missing days
+    result = []
+    current_date = start_date
+
+    while current_date <= end_date:
+        date_str = str(current_date)
+        count = activity_dict.get(date_str, 0)
+
+        # Determine activity level (0-4) based on count
+        if count == 0:
+            level = 0
+        elif count == 1:
+            level = 1
+        elif count <= 3:
+            level = 2
+        elif count <= 5:
+            level = 3
+        else:
+            level = 4
+
+        result.append(
+            {"date": date_str, "count": count, "level": level}
+        )
+
+        current_date += timedelta(days=1)
+
+    return result

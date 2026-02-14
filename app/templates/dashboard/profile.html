@@ -262,8 +262,12 @@ async function loadProfileData() {
             renderTopLinks(topLinks);
         }
         
-        // Generate activity heatmap
-        generateHeatmap();
+        // Load real activity data
+        const activityRes = await API.request('/api/v1/users/me/activity?days=365');
+        if (activityRes && activityRes.ok) {
+            const activityData = await activityRes.json();
+            generateHeatmap(activityData);
+        }
         
     } catch (error) {
         console.error('Error loading profile data:', error);
@@ -299,23 +303,41 @@ function renderTopLinks(links) {
     `).join('');
 }
 
-function generateHeatmap() {
+function generateHeatmap(activityData) {
     const container = document.getElementById('activityHeatmap');
-    const weeks = 53;
+    container.innerHTML = ''; // Clear existing content
     
-    // Generate random activity data (in real app, this would come from API)
-    for (let i = 0; i < weeks * 7; i++) {
+    // We need exactly 371 cells (53 weeks * 7 days)
+    // But we'll use the actual data length
+    const totalCells = 371;
+    const dataLength = activityData.length;
+    
+    // Add empty cells at the beginning to align with current day
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const emptyCellsAtStart = (totalCells - dataLength);
+    
+    // Add empty cells
+    for (let i = 0; i < emptyCellsAtStart; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        container.appendChild(cell);
+    }
+    
+    // Add actual data cells
+    activityData.forEach(day => {
         const cell = document.createElement('div');
         cell.className = 'heatmap-cell';
         
-        // Random activity level (0-4)
-        const level = Math.random() > 0.7 ? Math.floor(Math.random() * 5) : 0;
-        if (level > 0) {
-            cell.setAttribute('data-level', level);
+        if (day.level > 0) {
+            cell.setAttribute('data-level', day.level);
         }
         
+        // Add tooltip
+        cell.title = `${day.date}: ${day.count} link${day.count !== 1 ? 's' : ''} created`;
+        
         container.appendChild(cell);
-    }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

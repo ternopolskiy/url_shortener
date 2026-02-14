@@ -4,9 +4,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import analytics, auth, links, redirect, users
+from app.api import admin, analytics, auth, links, redirect, users
 from app.config import settings
-from app.core.dependencies import get_current_user, get_current_user_optional
+from app.core.dependencies import get_current_user, require_admin, get_current_user_optional
 from app.database import Base, engine
 from app.models import User
 
@@ -39,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(users.router)
 app.include_router(analytics.router)
+app.include_router(admin.router)
 
 # ===== Page Routes =====
 
@@ -138,6 +139,21 @@ async def settings_page(
             "request": request,
             "current_user": current_user,
             "active_page": "settings",
+        },
+    )
+
+
+@app.get("/admin")
+async def admin_page(
+    request: Request, current_user: User = Depends(require_admin)
+):
+    """Admin panel (requires admin role)."""
+    return templates.TemplateResponse(
+        "admin/index.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "active_page": "admin",
         },
     )
 
