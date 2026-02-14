@@ -11,6 +11,22 @@ A modern, full-featured URL shortener platform inspired by Bitly. Built with Fas
 
 ---
 
+## 📚 Documentation & Design
+
+<div align="center">
+
+### 🎨 UI/UX Design & Specifications
+
+[![Figma Mockups](https://img.shields.io/badge/Figma-UI_Mockups-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/design/MWhmrUY7hnuCvIzPTRGFmv/INT_POLE?node-id=0-1&t=0htrnVfHJW1NSZyr-1)
+[![Google Docs](https://img.shields.io/badge/Google_Docs-Control_Elements-4285F4?style=for-the-badge&logo=googledocs&logoColor=white)](https://docs.google.com/document/d/1X6Tsr8KPmO38-qIC8dQoZ9GD3sq8ItiZUVzt4w_N4iI/edit?tab=t.0)
+
+**📐 Figma Mockups** — Complete UI/UX design and interface mockups  
+**🎛️ Control Elements** — Detailed button functionality and interaction specifications
+
+</div>
+
+---
+
 ## 🗺️ Navigation Map
 
 <div align="center">
