@@ -1,0 +1,125 @@
+/* ============================================
+   THEME SYSTEM - Gosha Platform
+   ============================================ */
+
+:root,
+[data-theme="light"] {
+    /* Backgrounds */
+    --bg-primary: #FFFDF8;
+    --bg-secondary: #F5F0E8;
+    --bg-surface: #FFFFFF;
+    --bg-surface-hover: #FBF8F3;
+    --bg-elevated: #FFFFFF;
+
+    /* Text */
+    --text-primary: #0D2943;
+    --text-secondary: #031F39;
+    --text-muted: #6B7A8D;
+    --text-inverse: #FFFDF8;
+
+    /* Accent */
+    --accent: #EE6123;
+    --accent-hover: #D4561F;
+    --accent-light: #FFF0E8;
+    --accent-text: #FFFFFF;
+
+    /* Borders */
+    --border-default: #E8E2D9;
+    --border-hover: #D1C9BD;
+    --border-focus: #EE6123;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(13, 41, 67, 0.06);
+    --shadow-md: 0 4px 12px rgba(13, 41, 67, 0.08);
+    --shadow-lg: 0 8px 30px rgba(13, 41, 67, 0.1);
+    --shadow-xl: 0 16px 48px rgba(13, 41, 67, 0.12);
+
+    /* Status */
+    --success: #1DB954;
+    --success-light: #E8F8EE;
+    --warning: #F5A623;
+    --warning-light: #FFF8E8;
+    --error: #E53E3E;
+    --error-light: #FDE8E8;
+    --info: #2A5BD7;
+    --info-light: #E8F0FF;
+
+    /* Gradients */
+    --gradient-1: linear-gradient(135deg, #EE6123 0%, #E91E8C 100%);
+    --gradient-2: linear-gradient(135deg, #2A5BD7 0%, #7B2FF7 100%);
+    --gradient-3: linear-gradient(135deg, #1DB954 0%, #00B4D8 100%);
+    --gradient-4: linear-gradient(135deg, #F5A623 0%, #EE6123 100%);
+
+    /* Radius */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --radius-full: 9999px;
+
+    /* Navbar */
+    --navbar-bg: rgba(255, 253, 248, 0.85);
+    --navbar-blur: blur(20px);
+    --navbar-border: #E8E2D9;
+    --navbar-height: 72px;
+
+    /* Sidebar */
+    --sidebar-width: 260px;
+    --sidebar-bg: #FFFFFF;
+    --sidebar-border: #E8E2D9;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+[data-theme="dark"] {
+    --bg-primary: #031F39;
+    --bg-secondary: #06273F;
+    --bg-surface: #0D2943;
+    --bg-surface-hover: #12334F;
+    --bg-elevated: #143A5A;
+
+    --text-primary: #FFFDF8;
+    --text-secondary: #C4CDD6;
+    --text-muted: #6B8299;
+    --text-inverse: #031F39;
+
+    --accent: #EE6123;
+    --accent-hover: #F57842;
+    --accent-light: #1A2E3F;
+    --accent-text: #FFFFFF;
+
+    --border-default: #1A3A5C;
+    --border-hover: #2A4D6E;
+    --border-focus: #EE6123;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.35);
+
+    --success-light: #0A2A1A;
+    --warning-light: #2A2210;
+    --error-light: #2A1010;
+    --info-light: #0A1A2A;
+
+    --navbar-bg: rgba(3, 31, 57, 0.85);
+    --navbar-border: #1A3A5C;
+
+    --sidebar-bg: #0D2943;
+    --sidebar-border: #1A3A5C;
+}
+
+
+/* Transition for theme change */
+[data-theme-transition] * {
+    transition:
+        background-color 0.4s ease,
+        color 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease !important;
+}

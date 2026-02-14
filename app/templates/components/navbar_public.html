@@ -1,0 +1,28 @@
+<nav class="navbar">
+    <a href="/" class="navbar__logo">
+        <div class="navbar__logo-icon">G</div>
+        Gosha
+    </a>
+
+    <div class="navbar__nav" id="navMenu">
+        <a href="/" class="navbar__link {% if active_page == 'home' %}navbar__link--active{% endif %}">
+            Home
+        </a>
+        <a href="/features" class="navbar__link {% if active_page == 'features' %}navbar__link--active{% endif %}">
+            Features
+        </a>
+        <a href="/pricing" class="navbar__link {% if active_page == 'pricing' %}navbar__link--active{% endif %}">
+            Pricing
+        </a>
+    </div>
+
+    <div class="navbar__actions">
+        <button class="theme-toggle" aria-label="Toggle theme"></button>
+        <a href="/login" class="btn btn--ghost">Log in</a>
+        <a href="/register" class="btn btn--primary">Sign up free</a>
+    </div>
+
+    <button class="navbar__hamburger" onclick="document.getElementById('navMenu').classList.toggle('open')">
+        ☰
+    </button>
+</nav>

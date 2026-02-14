@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block main_class %}main-content--full{% endblock %}
+
+{% block content %}
+<div style="min-height: calc(100vh - var(--navbar-height) - 200px); display: flex; align-items: center; justify-content: center; padding: 32px 16px;">
+    <div class="card" style="max-width: 440px; width: 100%; padding: 40px;">
+        
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div style="width: 56px; height: 56px; background: var(--accent); border-radius: var(--radius-md);
+                        display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+                        font-size: 28px; color: white;">
+                🔗
+            </div>
+            <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Welcome back</h1>
+            <p style="color: var(--text-muted); font-size: 14px;">Log in to your Gosha account</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div style="margin-bottom: 20px;">
+                <label class="input-label" for="email">Email</label>
+                <input type="email" id="email" class="input" placeholder="your@email.com" required>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label class="input-label" for="password">Password</label>
+                <input type="password" id="password" class="input" placeholder="••••••••" required>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+                    <input type="checkbox" id="remember">
+                    <span>Remember me</span>
+                </label>
+                <a href="/forgot-password" style="font-size: 14px;">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn--primary" style="width: 100%; padding: 14px;" id="submitBtn">
+                <span id="btnText">Log In</span>
+                <span id="btnSpinner" style="display: none;">⏳</span>
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-default);">
+            <p style="font-size: 14px; color: var(--text-muted);">
+                Don't have an account?
+                <a href="/register" style="font-weight: 600;">Sign up for free →</a>
+            </p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline';
+    
+    const data = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+    };
+    
+    try {
+        const response = await fetch('/api/v1/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        
+        if (response.ok) {
+            Toast.show('Login successful!', 'success');
+            setTimeout(() => window.location.href = '/dashboard', 500);
+        } else {
+            const error = await response.json();
+            Toast.show(error.detail || 'Login failed', 'error');
+            submitBtn.disabled = false;
+            btnText.style.display = 'inline';
+            btnSpinner.style.display = 'none';
+        }
+    } catch (error) {
+        Toast.show('Network error', 'error');
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

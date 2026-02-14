@@ -1,0 +1,62 @@
+/* ============================================
+   RESET & TYPOGRAPHY
+   ============================================ */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background-color 0.4s ease, color 0.3s ease;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--accent-hover);
+}
+
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.page-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 32px;
+    padding-top: calc(var(--navbar-height) + 32px);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.main-content--full {
+    margin-left: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 16px;
+        padding-top: calc(var(--navbar-height) + 16px);
+    }
+}

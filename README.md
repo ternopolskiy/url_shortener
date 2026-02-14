@@ -1,191 +1,148 @@
-# 🔗 URL Shortener
+# 🔗 Gosha Connections Platform
 
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
-[![Pydantic](https://img.shields.io/badge/Pydantic-2.5-E92063?style=for-the-badge&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
-[![Pytest](https://img.shields.io/badge/Pytest-8.3-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)](https://pytest.org/)
+Полнофункциональная платформа для сокращения ссылок, создания QR-кодов и Bio Links страниц в стиле Bitly.
 
-Modern URL shortening service built with FastAPI and SQLite. Features a beautiful glassmorphism UI with animated backgrounds and real-time URL validation.
+## ✨ Возможности
 
-## ✨ Features
+- 🔗 **URL Shortener** — сокращение ссылок с кастомными кодами
+- 📊 **Analytics** — детальная аналитика кликов (устройства, браузеры, страны)
+- 📱 **QR Codes** — генерация кастомизируемых QR-кодов
+- 🌐 **Bio Links** — создание micro-landing pages (как Linktree)
+- 👤 **User System** — регистрация, авторизация с JWT
+- 🛡️ **Admin Panel** — управление пользователями и ссылками
+- 🌙 **Dark Mode** — светлая и темная темы
+- 📈 **Dashboard** — красивый дашборд с метриками
 
-- 🚀 **Fast & Lightweight** - Built on FastAPI with SQLite
-- 🎨 **Beautiful UI** - Glassmorphism design with animated gradients
-- 🔒 **URL Validation** - Real-time accessibility checks
-- 📊 **Click Tracking** - Monitor link performance
-- 🎯 **Custom Aliases** - Create memorable short links
-- 🔄 **Idempotent** - Same URL returns same short code
-- ✅ **Well Tested** - 95%+ code coverage
+## 🚀 Быстрый старт
 
-## 🚀 Quick Start
-
-### Installation
+### Установка зависимостей
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd url_shortener
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Run the Server
+### Запуск сервера
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Server will start at **http://localhost:8000**
+Приложение будет доступно по адресу: http://localhost:8000
 
-### Run Tests
+### Админ-доступ
 
-```bash
-# Run tests with coverage
-pytest --cov=app --cov-report=term-missing tests/
+При первом запуске автоматически создается админ-аккаунт:
+- Email: `admin@gosha.link`
+- Password: `Admin123!`
 
-# Expected coverage: ~95%
+## 📁 Структура проекта
+
 ```
+gosha-platform/
+├── app/
+│   ├── api/                    # API endpoints
+│   │   ├── auth.py            # Авторизация
+│   │   ├── links.py           # Работа со ссылками
+│   │   └── redirect.py        # Редирект по short code
+│   ├── core/                   # Ядро
+│   │   ├── security.py        # JWT, hashing
+│   │   ├── dependencies.py    # FastAPI dependencies
+│   │   └── exceptions.py      # Кастомные исключения
+│   ├── static/                 # Статика
+│   │   ├── css/
+│   │   │   ├── variables.css  # CSS переменные (темы)
+│   │   │   ├── base.css       # Базовые стили
+│   │   │   └── components.css # Компоненты
+│   │   └── js/
+│   │       ├── theme.js       # Переключение тем
+│   │       └── app.js         # Общая логика
+│   ├── templates/              # Jinja2 шаблоны
+│   │   ├── base.html          # Базовый layout
+│   │   ├── components/        # Переиспользуемые компоненты
+│   │   └── auth/              # Страницы авторизации
+│   ├── config.py              # Настройки
+│   ├── database.py            # SQLAlchemy setup
+│   ├── models.py              # Модели БД
+│   ├── schemas.py             # Pydantic схемы
+│   ├── utils.py               # Утилиты
+│   └── main.py                # FastAPI app
+├── tests/                      # Тесты
+├── requirements.txt
+└── README.md
+```
+
+## 🗄️ База данных
+
+Используется SQLite с следующими таблицами:
+- `users` — пользователи (с ролями user/admin)
+- `urls` — короткие ссылки
+- `clicks` — аналитика кликов
+- `qr_codes` — QR коды
+- `bio_pages` — Bio страницы
+- `bio_links` — Ссылки на Bio страницах
+
+## 🔐 Авторизация
+
+Система использует JWT токены:
+- **Access Token** — короткоживущий (30 минут), в httpOnly cookie
+- **Refresh Token** — долгоживущий (7 дней), в httpOnly cookie
+- Автоматический refresh при истечении access token
+
+## 🎨 Дизайн
+
+Дизайн вдохновлен Bitly с теплой цветовой палитрой:
+- Светлая тема: `#FFFDF8` (теплый белый фон)
+- Акцент: `#EE6123` (оранжевый)
+- Темная тема: `#031F39` (глубокий синий)
+- Плавные переходы между темами
+- Адаптивный дизайн для мобильных устройств
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/shorten` | Create a short URL |
-| `GET` | `/{short_code}` | Redirect to original URL (302) |
-| `GET` | `/api/info/{short_code}` | Get link statistics |
-| `GET` | `/api/health` | Health check |
-| `GET` | `/` | Web UI |
+### Авторизация
+- `POST /api/v1/auth/register` — регистрация
+- `POST /api/v1/auth/login` — вход
+- `POST /api/v1/auth/logout` — выход
+- `POST /api/v1/auth/refresh` — обновить токен
+- `GET /api/v1/auth/me` — текущий пользователь
 
-### API Examples
+### Ссылки
+- `POST /api/v1/links` — создать ссылку
+- `GET /api/v1/links` — получить мои ссылки
+- `GET /api/v1/links/{id}` — детали ссылки
+- `PATCH /api/v1/links/{id}` — обновить ссылку
+- `DELETE /api/v1/links/{id}` — удалить ссылку
 
-**Create Short URL:**
-```bash
-curl -X POST "http://localhost:8000/api/shorten" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/very/long/url"}'
-```
+### Редирект
+- `GET /{short_code}` — редирект на оригинальный URL
 
-**Create Custom Short URL:**
-```bash
-curl -X POST "http://localhost:8000/api/shorten" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "custom_code": "my-link"}'
-```
-
-**Get Link Info:**
-```bash
-curl "http://localhost:8000/api/info/my-link"
-```
-
-## 🏗️ Project Structure
-
-```
-url_shortener/
-├── app/
-│   ├── __init__.py
-│   ├── main.py           # FastAPI application entry point
-│   ├── config.py         # Configuration settings
-│   ├── models.py         # SQLAlchemy models
-│   ├── schemas.py        # Pydantic schemas
-│   ├── database.py       # Database connection
-│   ├── crud.py           # Database operations
-│   ├── routes.py         # API endpoints
-│   ├── utils.py          # Helper functions
-│   ├── static/
-│   │   ├── css/
-│   │   │   └── styles.css
-│   │   └── js/
-│   │       └── main.js
-│   └── templates/
-│       └── index.html
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py
-│   ├── test_routes.py
-│   ├── test_crud.py
-│   └── test_utils.py
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
-
-## 🎨 UI Features
-
-- **Glassmorphism Design** - Modern frosted glass effect
-- **Animated Background** - Floating gradient blobs
-- **Responsive Layout** - Works on all devices
-- **Real-time Validation** - Instant feedback
-- **Copy to Clipboard** - One-click copy functionality
-- **Error Animations** - Smooth shake effects
-
-## 🔧 Configuration
-
-Create a `.env` file to customize settings:
-
-```env
-DATABASE_URL=sqlite:///./shortener.db
-BASE_URL=http://localhost:8000
-SHORT_CODE_LENGTH=6
-```
-
-## 🧪 Testing
-
-The project includes comprehensive tests:
-
-- **Unit Tests** - CRUD operations, utilities
-- **Integration Tests** - API endpoints
-- **Mocked External Calls** - URL accessibility checks
+## 🧪 Тестирование
 
 ```bash
-# Run specific test file
-pytest tests/test_routes.py -v
-
-# Run with coverage report
-pytest --cov=app --cov-report=html tests/
+pytest
 ```
 
-## 📊 Database Schema
-
-```sql
-CREATE TABLE urls (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    original_url TEXT NOT NULL,
-    short_code VARCHAR(20) UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    clicks INTEGER DEFAULT 0
-);
-
-CREATE INDEX idx_short_code ON urls(short_code);
+С покрытием:
+```bash
+pytest --cov=app tests/
 ```
 
-## 🔄 Migration to PostgreSQL
+## 📝 TODO
 
-To switch from SQLite to PostgreSQL, simply update the `DATABASE_URL`:
+- [ ] Analytics API endpoints
+- [ ] QR Code generation API
+- [ ] Bio Links API
+- [ ] Admin panel pages
+- [ ] Dashboard page
+- [ ] Email notifications
+- [ ] Rate limiting
+- [ ] GeoIP для определения страны
+- [ ] Экспорт аналитики в CSV
 
-```python
-# .env
-DATABASE_URL=postgresql://user:password@localhost/shortener
-```
+## 👨‍💻 Автор
 
-SQLAlchemy handles the rest automatically.
+Made by [ternopolskiy](https://github.com/ternopolskiy)
 
-## 🛠️ Tech Stack
+## 📄 Лицензия
 
-- **FastAPI** - Modern Python web framework
-- **SQLAlchemy** - SQL toolkit and ORM
-- **Pydantic** - Data validation
-- **SQLite** - Lightweight database
-- **Pytest** - Testing framework
-- **HTTPX** - Async HTTP client
-- **Jinja2** - Template engine
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 👤 Author
-
-Made with ❤️ by [ternopolskiy](https://github.com/ternopolskiy)
+MIT License

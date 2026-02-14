@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main_class %}main-content--full{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    text-align: center;
+    padding: 80px 32px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hero-section h1 {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-section p {
+    font-size: 20px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hero-buttons .btn {
+    padding: 16px 32px;
+    font-size: 16px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 80px auto;
+    padding: 0 32px;
+}
+
+.feature-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    text-align: center;
+    transition: all var(--transition-normal);
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+}
+
+.feature-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.feature-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.feature-card p {
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+.stats-section {
+    background: var(--bg-secondary);
+    padding: 60px 32px;
+    margin: 80px 0;
+    border-top: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 48px;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.stat-item h4 {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+
+.stat-item p {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.cta-section {
+    text-align: center;
+    padding: 80px 32px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.cta-section h2 {
+    font-size: 40px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.cta-section p {
+    font-size: 18px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 36px;
+    }
+    .hero-section p {
+        font-size: 16px;
+    }
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <h1>Build stronger digital connections</h1>
+    <p>
+        Use our URL shortener, QR Codes, and landing pages to engage your audience 
+        and connect them to the right information.
+    </p>
+    <div class="hero-buttons">
+        <a href="/register" class="btn btn--primary">
+            ✨ Get Started for Free
+        </a>
+        <a href="/login" class="btn btn--secondary">
+            Log In →
+        </a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-grid">
+    <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h3>URL Shortener</h3>
+        <p>
+            Shorten your URLs and share them everywhere. 
+            Track clicks and analyze performance in real-time.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>QR Codes</h3>
+        <p>
+            Create QR codes that connect to any content. 
+            Customize colors and styles to match your brand.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <h3>Bio Links</h3>
+        <p>
+            Build your micro-site with all your links in one place. 
+            Perfect for social media profiles.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Analytics</h3>
+        <p>
+            Track and analyze every connection you make. 
+            Get insights on devices, locations, and more.
+        </p>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <h4>600K+</h4>
+            <p>Global paying customers</p>
+        </div>
+        <div class="stat-item">
+            <h4>256M</h4>
+            <p>Links & QR Codes created monthly</p>
+        </div>
+        <div class="stat-item">
+            <h4>800+</h4>
+            <p>App integrations</p>
+        </div>
+        <div class="stat-item">
+            <h4>10B</h4>
+            <p>Clicks & scans monthly</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <h2>More than a link shortener</h2>
+    <p>
+        Knowing how your clicks and scans are performing should be as easy as making them. 
+        Track, analyze, and optimize all your connections in one place.
+    </p>
+    <a href="/register" class="btn btn--primary" style="padding: 16px 40px; font-size: 16px;">
+        ✨ Get Started Free
+    </a>
+</section>
+
+{% endblock %}
