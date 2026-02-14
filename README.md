@@ -9,6 +9,20 @@
 
 A modern, full-featured URL shortener platform inspired by Bitly. Built with FastAPI, featuring analytics, QR codes, bio pages, and a beautiful responsive UI with dark mode support.
 
+---
+
+## 🗺️ Navigation Map
+
+<div align="center">
+  
+### Complete Site Structure Visualization
+
+![Navigation Map](image_homework/ВЕРОНИЧКА.drawio.svg)
+
+</div>
+
+---
+
 ## ✨ Features
 
 ### 🔗 Core Features

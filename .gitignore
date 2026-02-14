@@ -27,5 +27,9 @@ app/static/uploads/*
 app/static/uploads/avatars/*
 !app/static/uploads/avatars/.gitkeep
 
+
+# Tech
 tech.md
 SITEMAP.md
+NAVIGATION_TREE.md
+NAVIGATION_MAP.md
