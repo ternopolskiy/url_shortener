@@ -86,6 +86,34 @@
     color: var(--error);
 }
 
+#deleteAccountModal {
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#deleteAccountModal .card {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
@@ -281,13 +309,17 @@
             <h3>Language</h3>
             <p>Select your preferred language.</p>
             
-            <select class="input" style="max-width: 300px;">
-                <option value="en">English</option>
-                <option value="ru">Русский</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
+            <select id="languageSelect" class="input" style="max-width: 300px;" onchange="changeLanguage()">
+                <option value="en" {% if current_user.language == 'en' %}selected{% endif %}>🇬🇧 English</option>
+                <option value="ru" {% if current_user.language == 'ru' %}selected{% endif %}>🇷🇺 Русский</option>
+                <option value="es" {% if current_user.language == 'es' %}selected{% endif %}>🇪🇸 Español</option>
+                <option value="fr" {% if current_user.language == 'fr' %}selected{% endif %}>🇫🇷 Français</option>
+                <option value="de" {% if current_user.language == 'de' %}selected{% endif %}>🇩🇪 Deutsch</option>
             </select>
+            
+            <div style="margin-top: 12px; padding: 12px; background: var(--info-light); border-radius: var(--radius-sm); font-size: 13px; color: var(--info);">
+                ℹ️ Language preference is saved to your account. Full translation coming soon!
+            </div>
         </div>
     </div>
 
@@ -349,6 +381,43 @@
         <button class="btn btn--secondary" style="border-color: var(--error); color: var(--error);" onclick="confirmDeleteAccount()">
             Delete Account
         </button>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div id="deleteAccountModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;" onclick="if(event.target === this) closeDeleteModal()">
+    <div class="card" style="max-width: 500px; width: 90%; margin: 20px;">
+        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px; color: var(--error);">
+            ⚠️ Delete Account
+        </h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.6;">
+            This action is permanent and cannot be undone. All your data will be deleted:
+        </p>
+        <ul style="color: var(--text-muted); margin-bottom: 24px; padding-left: 24px; line-height: 1.8;">
+            <li>All your shortened links</li>
+            <li>All analytics and click data</li>
+            <li>Your profile and settings</li>
+            <li>Your avatar and uploaded files</li>
+        </ul>
+        
+        <form id="deleteAccountForm" onsubmit="deleteAccount(event)">
+            <div class="form-group">
+                <label class="input-label" for="deletePassword">
+                    Enter your password to confirm
+                </label>
+                <input type="password" id="deletePassword" class="input" placeholder="Your password" required>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn--secondary" onclick="closeDeleteModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn--primary" style="background: var(--error); border-color: var(--error);" id="deleteAccountBtn">
+                    <span id="deleteAccountBtnText">Delete My Account</span>
+                    <span id="deleteAccountBtnSpinner" style="display: none;">⏳</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -461,10 +530,65 @@ function selectTheme(theme) {
 }
 
 function confirmDeleteAccount() {
-    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        if (confirm('This will permanently delete all your links, analytics, and data. Are you absolutely sure?')) {
-            Toast.show('Account deletion is not yet implemented', 'warning');
+    document.getElementById('deleteAccountModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteAccountModal').style.display = 'none';
+    document.getElementById('deleteAccountForm').reset();
+}
+
+async function deleteAccount(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('deleteAccountBtn');
+    const btnText = document.getElementById('deleteAccountBtnText');
+    const btnSpinner = document.getElementById('deleteAccountBtnSpinner');
+    
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline';
+    
+    const password = document.getElementById('deletePassword').value;
+    
+    try {
+        const response = await API.request('/api/v1/users/me', {
+            method: 'DELETE',
+            body: JSON.stringify({ password }),
+        });
+        
+        if (response && response.ok) {
+            // Close modal
+            closeDeleteModal();
+            
+            // Show success message
+            Toast.show('Account deleted successfully. Redirecting...', 'success');
+            
+            // Logout via POST request
+            try {
+                await API.request('/api/v1/auth/logout', {
+                    method: 'POST',
+                });
+            } catch (e) {
+                // Ignore logout errors since account is already deleted
+            }
+            
+            // Redirect to home after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        } else {
+            const error = await response.json();
+            Toast.show(error.detail || 'Failed to delete account', 'error');
+            btn.disabled = false;
+            btnText.style.display = 'inline';
+            btnSpinner.style.display = 'none';
         }
+    } catch (error) {
+        Toast.show('Network error', 'error');
+        btn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
     }
 }
 
@@ -546,6 +670,42 @@ async function deleteAvatar() {
         } else {
             const error = await response.json();
             Toast.show(error.detail || 'Failed to remove avatar', 'error');
+        }
+    } catch (error) {
+        Toast.show('Network error', 'error');
+    }
+}
+
+async function changeLanguage() {
+    const language = document.getElementById('languageSelect').value;
+    
+    try {
+        const response = await API.request('/api/v1/users/me/language', {
+            method: 'PATCH',
+            body: JSON.stringify({ language }),
+        });
+        
+        if (response && response.ok) {
+            const data = await response.json();
+            
+            const languageNames = {
+                'en': 'English',
+                'ru': 'Русский',
+                'es': 'Español',
+                'fr': 'Français',
+                'de': 'Deutsch'
+            };
+            
+            Toast.show(`Language changed to ${languageNames[language]}!`, 'success');
+            
+            // Store in localStorage for immediate UI updates
+            localStorage.setItem('userLanguage', language);
+            
+            // Reload page after 1 second to apply changes
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            const error = await response.json();
+            Toast.show(error.detail || 'Failed to change language', 'error');
         }
     } catch (error) {
         Toast.show('Network error', 'error');

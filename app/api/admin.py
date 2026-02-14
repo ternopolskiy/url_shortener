@@ -145,17 +145,31 @@ async def delete_user(
     db: Session = Depends(get_db),
 ):
     """Delete a user and all their data."""
+    from pathlib import Path
+    
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if user.is_admin:
+    # Prevent deletion of admin users
+    if user.role == "admin":
         raise HTTPException(
             status_code=403, detail="Cannot delete admin users"
         )
+    
+    # Delete avatar file if exists
+    if user.avatar_url and user.avatar_url.startswith("/static/uploads/"):
+        file_path = Path("app" + user.avatar_url)
+        if file_path.exists():
+            try:
+                file_path.unlink()
+            except Exception:
+                pass  # Continue even if file deletion fails
 
+    # Delete user (cascade will delete all related data)
     db.delete(user)
     db.commit()
+    
     return {"detail": "User deleted successfully"}
 
 

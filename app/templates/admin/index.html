@@ -348,9 +348,16 @@ function renderUsers(users) {
             <td><span class="badge badge--${user.is_active ? 'success' : 'error'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
             <td>${new Date(user.created_at).toLocaleDateString()}</td>
             <td>
-                <button class="btn btn--ghost" style="padding: 6px 12px; font-size: 12px;" onclick="toggleUserStatus(${user.id}, ${!user.is_active})">
-                    ${user.is_active ? 'Disable' : 'Enable'}
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn--ghost" style="padding: 6px 12px; font-size: 12px;" onclick="toggleUserStatus(${user.id}, ${!user.is_active})">
+                        ${user.is_active ? 'Disable' : 'Enable'}
+                    </button>
+                    ${user.role !== 'admin' ? `
+                        <button class="btn btn--ghost" style="padding: 6px 12px; font-size: 12px; color: var(--error);" onclick="deleteUser(${user.id}, '${user.username}')">
+                            Delete
+                        </button>
+                    ` : ''}
+                </div>
             </td>
         </tr>
     `).join('');
@@ -574,6 +581,29 @@ async function toggleUserStatus(userId, newStatus) {
             loadUsers();
         } else {
             Toast.show('Failed to update user', 'error');
+        }
+    } catch (error) {
+        Toast.show('Network error', 'error');
+    }
+}
+
+async function deleteUser(userId, username) {
+    if (!confirm(`Are you sure you want to delete user "${username}"?\n\nThis will permanently delete:\n• User account\n• All their links\n• All analytics data\n\nThis action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await API.request(`/api/v1/admin/users/${userId}`, {
+            method: 'DELETE',
+        });
+        
+        if (response && response.ok) {
+            Toast.show('User deleted successfully', 'success');
+            loadUsers();
+            loadAdminData(); // Refresh stats
+        } else {
+            const error = await response.json();
+            Toast.show(error.detail || 'Failed to delete user', 'error');
         }
     } catch (error) {
         Toast.show('Network error', 'error');

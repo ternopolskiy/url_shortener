@@ -32,6 +32,7 @@ class User(Base):
     avatar_url = Column(String(500), nullable=True)
     is_active = Column(Boolean, default=True)
     theme_preference = Column(String(10), default="light")
+    language = Column(String(5), default="en")  # en, ru, es, fr, de
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)

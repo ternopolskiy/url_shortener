@@ -3,11 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
 from app.api import admin, analytics, auth, links, redirect, users
 from app.config import settings
 from app.core.dependencies import get_current_user, require_admin, get_current_user_optional
-from app.database import Base, engine
+from app.database import Base, engine, get_db
 from app.models import User
 
 # Create tables
@@ -45,8 +46,25 @@ app.include_router(admin.router)
 
 
 @app.get("/")
-async def landing(request: Request):
-    """Landing page."""
+async def landing(request: Request, db: Session = Depends(get_db)):
+    """Landing page - redirects to dashboard if authenticated."""
+    # Check if user is authenticated
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            from app.core.security import decode_token
+            
+            payload = decode_token(token)
+            if payload and payload.get("type") == "access":
+                user_id = payload.get("sub")
+                user = db.query(User).filter(User.id == int(user_id)).first()
+                
+                if user and user.is_active:
+                    # User is authenticated - redirect to dashboard
+                    return RedirectResponse(url="/dashboard", status_code=302)
+    except:
+        pass  # Not authenticated, show landing page
+    
     return templates.TemplateResponse(
         "landing.html", {"request": request, "active_page": "home"}
     )
@@ -159,18 +177,58 @@ async def admin_page(
 
 
 @app.get("/login")
-async def login_page(request: Request):
-    """Login page."""
+async def login_page(request: Request, db: Session = Depends(get_db)):
+    """Login page - redirects to dashboard if already authenticated."""
+    # Check if user is authenticated
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            from app.core.security import decode_token
+            
+            payload = decode_token(token)
+            if payload and payload.get("type") == "access":
+                user_id = payload.get("sub")
+                user = db.query(User).filter(User.id == int(user_id)).first()
+                
+                if user and user.is_active:
+                    return RedirectResponse(url="/dashboard", status_code=302)
+    except:
+        pass
+    
     return templates.TemplateResponse(
         "auth/login.html", {"request": request, "active_page": "login"}
     )
 
 
 @app.get("/register")
-async def register_page(request: Request):
-    """Register page."""
+async def register_page(request: Request, db: Session = Depends(get_db)):
+    """Register page - redirects to dashboard if already authenticated."""
+    # Check if user is authenticated
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            from app.core.security import decode_token
+            
+            payload = decode_token(token)
+            if payload and payload.get("type") == "access":
+                user_id = payload.get("sub")
+                user = db.query(User).filter(User.id == int(user_id)).first()
+                
+                if user and user.is_active:
+                    return RedirectResponse(url="/dashboard", status_code=302)
+    except:
+        pass
+    
     return templates.TemplateResponse(
         "auth/register.html", {"request": request, "active_page": "register"}
+    )
+
+
+@app.get("/forgot-password")
+async def forgot_password_page(request: Request):
+    """Forgot password page."""
+    return templates.TemplateResponse(
+        "auth/forgot_password.html", {"request": request, "active_page": "forgot-password"}
     )
 
 
@@ -192,6 +250,27 @@ async def create_admin():
 
     db = SessionLocal()
     try:
+        # Run migration for language column if needed
+        import sqlite3
+        
+        conn = sqlite3.connect(settings.DATABASE_URL.replace("sqlite:///./", ""))
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("PRAGMA table_info(users)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'language' not in columns:
+                print("🔄 Running migration: Adding 'language' column...")
+                cursor.execute("ALTER TABLE users ADD COLUMN language VARCHAR(5) DEFAULT 'en'")
+                conn.commit()
+                print("✅ Migration completed: 'language' column added")
+        except Exception as e:
+            print(f"⚠️  Migration check: {e}")
+        finally:
+            conn.close()
+        
+        # Create admin user if not exists
         admin = db.query(User).filter(User.role == UserRole.ADMIN).first()
         if not admin:
             admin = User(

@@ -298,3 +298,72 @@ async def delete_avatar(
     db.commit()
 
     return {"detail": "Avatar deleted successfully"}
+
+
+@router.patch("/me/language")
+async def update_language(
+    language_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update user language preference."""
+    language = language_data.get("language")
+    
+    # Validate language
+    allowed_languages = ["en", "ru", "es", "fr", "de"]
+    if language not in allowed_languages:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid language. Allowed: {', '.join(allowed_languages)}",
+        )
+
+    current_user.language = language
+    db.commit()
+
+    return {"detail": "Language updated successfully", "language": language}
+
+
+@router.delete("/me")
+async def delete_account(
+    password_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete user account and all associated data."""
+    from app.core.security import verify_password
+    from pathlib import Path
+
+    password = password_data.get("password")
+    
+    if not password:
+        raise HTTPException(
+            status_code=400, detail="Password is required to delete account"
+        )
+    
+    # Verify password
+    if not verify_password(password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=401, detail="Incorrect password"
+        )
+    
+    # Prevent admin deletion via this endpoint
+    if current_user.role == "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Admin accounts cannot be deleted via this endpoint. Contact support.",
+        )
+    
+    # Delete avatar file if exists
+    if current_user.avatar_url and current_user.avatar_url.startswith("/static/uploads/"):
+        file_path = Path("app" + current_user.avatar_url)
+        if file_path.exists():
+            try:
+                file_path.unlink()
+            except Exception:
+                pass  # Continue even if file deletion fails
+    
+    # Delete user (cascade will delete links and clicks)
+    db.delete(current_user)
+    db.commit()
+    
+    return {"detail": "Account deleted successfully"}
