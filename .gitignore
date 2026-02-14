@@ -19,7 +19,13 @@ build/
 *.egg-info/
 .vscode/
 
-# Uploaded files
-app/static/uploads/
+# Uploaded files (but keep directory structure)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+!app/static/uploads/README.md
+!app/static/uploads/avatars/
+app/static/uploads/avatars/*
+!app/static/uploads/avatars/.gitkeep
 
 tech.md
+SITEMAP.md
