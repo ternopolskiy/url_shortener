@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import auth, links, redirect
+from app.api import analytics, auth, links, redirect, users
 from app.config import settings
 from app.core.dependencies import get_current_user, get_current_user_optional
 from app.database import Base, engine
@@ -37,6 +37,8 @@ templates = Jinja2Templates(directory="app/templates")
 # ===== API Routes =====
 app.include_router(auth.router)
 app.include_router(links.router)
+app.include_router(users.router)
+app.include_router(analytics.router)
 
 # ===== Page Routes =====
 
@@ -46,6 +48,22 @@ async def landing(request: Request):
     """Landing page."""
     return templates.TemplateResponse(
         "landing.html", {"request": request, "active_page": "home"}
+    )
+
+
+@app.get("/features")
+async def features_page(request: Request):
+    """Features page."""
+    return templates.TemplateResponse(
+        "public/features.html", {"request": request, "active_page": "features"}
+    )
+
+
+@app.get("/pricing")
+async def pricing_page(request: Request):
+    """Pricing page."""
+    return templates.TemplateResponse(
+        "public/pricing.html", {"request": request, "active_page": "pricing"}
     )
 
 
@@ -90,6 +108,36 @@ async def analytics_page(
             "request": request,
             "current_user": current_user,
             "active_page": "analytics",
+        },
+    )
+
+
+@app.get("/profile")
+async def profile_page(
+    request: Request, current_user: User = Depends(get_current_user)
+):
+    """Profile page (requires authentication)."""
+    return templates.TemplateResponse(
+        "dashboard/profile.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "active_page": "profile",
+        },
+    )
+
+
+@app.get("/settings")
+async def settings_page(
+    request: Request, current_user: User = Depends(get_current_user)
+):
+    """Settings page (requires authentication)."""
+    return templates.TemplateResponse(
+        "dashboard/settings.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "active_page": "settings",
         },
     )
 

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Features{% endblock %}
+
+{% block main_class %}main-content--full{% endblock %}
+
+{% block extra_css %}
+<style>
+.features-hero {
+    text-align: center;
+    padding: 80px 32px 60px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.features-hero h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.features-hero p {
+    font-size: 18px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.feature-section {
+    max-width: 1200px;
+    margin: 80px auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.feature-section:nth-child(even) {
+    direction: rtl;
+}
+
+.feature-section:nth-child(even) > * {
+    direction: ltr;
+}
+
+.feature-content h2 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.feature-content p {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 12px 0;
+    display: flex;
+    align-items: start;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.feature-list li::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--success-light);
+    color: var(--success);
+    border-radius: 50%;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.feature-visual {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-visual::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: var(--accent-light);
+    border-radius: 50%;
+    top: -50px;
+    right: -50px;
+    opacity: 0.5;
+}
+
+.feature-icon {
+    font-size: 120px;
+    filter: drop-shadow(0 10px 30px rgba(238, 97, 35, 0.2));
+}
+
+@media (max-width: 968px) {
+    .feature-section {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .feature-section:nth-child(even) {
+        direction: ltr;
+    }
+    
+    .features-hero h1 {
+        font-size: 36px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="features-hero">
+    <h1>Powerful features for powerful connections</h1>
+    <p>
+        Everything you need to create, manage, and track your links. 
+        Built for individuals and teams who want more from their URLs.
+    </p>
+</section>
+
+<!-- Feature 1: URL Shortener -->
+<section class="feature-section">
+    <div class="feature-content">
+        <h2>🔗 URL Shortener</h2>
+        <p>
+            Transform long, unwieldy URLs into short, memorable links that are perfect for sharing 
+            anywhere. Customize your links to match your brand and track every click.
+        </p>
+        <ul class="feature-list">
+            <li>Custom branded short links</li>
+            <li>Bulk link creation and management</li>
+            <li>Link expiration dates</li>
+            <li>UTM parameter builder</li>
+            <li>Link preview before sharing</li>
+            <li>Password-protected links</li>
+        </ul>
+    </div>
+    <div class="feature-visual">
+        <div class="feature-icon">🔗</div>
+    </div>
+</section>
+
+<!-- Feature 2: Analytics -->
+<section class="feature-section">
+    <div class="feature-content">
+        <h2>📊 Advanced Analytics</h2>
+        <p>
+            Get deep insights into how your links perform. Track clicks, understand your audience, 
+            and make data-driven decisions with comprehensive analytics.
+        </p>
+        <ul class="feature-list">
+            <li>Real-time click tracking</li>
+            <li>Geographic location data</li>
+            <li>Device and browser breakdown</li>
+            <li>Referrer source tracking</li>
+            <li>Time-based analytics</li>
+            <li>Export data to CSV</li>
+        </ul>
+    </div>
+    <div class="feature-visual">
+        <div class="feature-icon">📊</div>
+    </div>
+</section>
+
+<!-- Feature 3: QR Codes -->
+<section class="feature-section">
+    <div class="feature-content">
+        <h2>📱 QR Code Generator</h2>
+        <p>
+            Create beautiful, customizable QR codes that connect to any content. 
+            Perfect for print materials, packaging, and offline marketing.
+        </p>
+        <ul class="feature-list">
+            <li>Instant QR code generation</li>
+            <li>Custom colors and styles</li>
+            <li>Logo embedding</li>
+            <li>High-resolution downloads</li>
+            <li>Multiple format support (PNG, SVG)</li>
+            <li>QR code analytics</li>
+        </ul>
+    </div>
+    <div class="feature-visual">
+        <div class="feature-icon">📱</div>
+    </div>
+</section>
+
+<!-- Feature 4: Bio Links -->
+<section class="feature-section">
+    <div class="feature-content">
+        <h2>🌐 Bio Links</h2>
+        <p>
+            Create a beautiful landing page with all your important links in one place. 
+            Perfect for social media profiles, email signatures, and more.
+        </p>
+        <ul class="feature-list">
+            <li>Customizable landing pages</li>
+            <li>Unlimited links per page</li>
+            <li>Drag-and-drop link ordering</li>
+            <li>Multiple theme options</li>
+            <li>Social media icons</li>
+            <li>Page view analytics</li>
+        </ul>
+    </div>
+    <div class="feature-visual">
+        <div class="feature-icon">🌐</div>
+    </div>
+</section>
+
+<!-- Feature 5: Team Collaboration -->
+<section class="feature-section">
+    <div class="feature-content">
+        <h2>👥 Team Collaboration</h2>
+        <p>
+            Work together with your team to manage links, share analytics, 
+            and maintain brand consistency across all your campaigns.
+        </p>
+        <ul class="feature-list">
+            <li>Team workspaces</li>
+            <li>Role-based permissions</li>
+            <li>Shared link libraries</li>
+            <li>Activity logs</li>
+            <li>Team analytics dashboard</li>
+            <li>Collaborative link editing</li>
+        </ul>
+    </div>
+    <div class="feature-visual">
+        <div class="feature-icon">👥</div>
+    </div>
+</section>
+
+<!-- Feature 6: Security & Reliability -->
+<section class="feature-section">
+    <div class="feature-content">
+        <h2>🔒 Security & Reliability</h2>
+        <p>
+            Your links are safe with us. Enterprise-grade security, 99.9% uptime, 
+            and automatic backups ensure your links always work.
+        </p>
+        <ul class="feature-list">
+            <li>SSL/TLS encryption</li>
+            <li>DDoS protection</li>
+            <li>Automatic backups</li>
+            <li>99.9% uptime SLA</li>
+            <li>GDPR compliant</li>
+            <li>24/7 monitoring</li>
+        </ul>
+    </div>
+    <div class="feature-visual">
+        <div class="feature-icon">🔒</div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="text-align: center; padding: 80px 32px; max-width: 700px; margin: 0 auto;">
+    <h2 style="font-size: 40px; font-weight: 700; margin-bottom: 20px;">Ready to get started?</h2>
+    <p style="font-size: 18px; color: var(--text-muted); margin-bottom: 32px;">
+        Join thousands of users who trust Gosha for their link management needs.
+    </p>
+    <a href="/register" class="btn btn--primary" style="padding: 16px 40px; font-size: 16px;">
+        ✨ Start Free Trial
+    </a>
+</section>
+
+{% endblock %}

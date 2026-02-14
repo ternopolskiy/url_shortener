@@ -2,17 +2,526 @@
 
 {% block title %}Analytics{% endblock %}
 
+{% block extra_css %}
+<style>
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.chart-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    min-height: 300px;
+}
+
+.chart-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.placeholder-chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 240px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.metric-row:last-child {
+    border-bottom: none;
+}
+
+.metric-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.metric-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div style="padding: 32px;">
-    <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Analytics</h1>
-    <p style="color: var(--text-muted); margin-bottom: 32px;">Track your link performance</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <div>
+            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Analytics</h1>
+            <p style="color: var(--text-muted);">Track your link performance and audience insights</p>
+        </div>
+        <select id="periodSelect" class="input" style="width: 150px;" onchange="loadAnalytics()">
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+        </select>
+    </div>
 
-    <div class="card" style="text-align: center; padding: 60px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
-        <h2 style="font-size: 24px; font-weight: 600; margin-bottom: 12px;">Analytics Coming Soon</h2>
-        <p style="color: var(--text-muted);">
-            Detailed analytics with charts, device breakdown, and geographic data will be available soon.
-        </p>
+    <!-- Overview Stats -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px;">
+        <div class="card">
+            <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Total Clicks</div>
+            <div style="font-size: 32px; font-weight: 700; color: var(--accent);" id="totalClicksStat">0</div>
+            <div style="font-size: 12px; margin-top: 4px;" id="growthStat">
+                <span style="color: var(--text-muted);">↑ 0% this period</span>
+            </div>
+        </div>
+        <div class="card">
+            <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Active Links</div>
+            <div style="font-size: 32px; font-weight: 700; color: var(--info);" id="activeLinksStat">0</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Total links created</div>
+        </div>
+        <div class="card">
+            <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Avg. CTR</div>
+            <div style="font-size: 32px; font-weight: 700; color: var(--success);" id="avgCtrStat">0%</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Click-through rate</div>
+        </div>
+        <div class="card">
+            <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Top Link</div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--warning); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="topLinkStat">-</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="topLinkClicks">0 clicks</div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="analytics-grid">
+        <!-- Clicks Over Time -->
+        <div class="chart-card" style="grid-column: span 2;">
+            <h3>📈 Clicks Over Time</h3>
+            <div id="clicksChart" style="margin-top: 16px;">
+                <canvas id="clicksCanvas" style="max-height: 240px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Referrers -->
+        <div class="chart-card">
+            <h3>🔗 Top Referrers</h3>
+            <div id="referrersList" style="margin-top: 16px;">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Devices -->
+        <div class="chart-card">
+            <h3>📱 Devices</h3>
+            <div id="devicesList" style="margin-top: 16px;">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Browsers -->
+        <div class="chart-card">
+            <h3>🌐 Browsers</h3>
+            <div id="browsersList" style="margin-top: 16px;">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Countries -->
+        <div class="chart-card">
+            <h3>🌍 Top Countries</h3>
+            <div id="countriesList" style="margin-top: 16px;">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Links -->
+    <div class="card" style="margin-top: 32px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">🔥 Top Performing Links</h3>
+        <div id="topLinksList">
+            <div style="text-align: center; padding: 40px; color: var(--text-muted);">Loading...</div>
+        </div>
     </div>
 </div>
+
+<script>
+let clicksChart = null;
+
+async function loadAnalytics() {
+    const days = document.getElementById('periodSelect').value;
+    
+    try {
+        // Load overview
+        const overviewRes = await API.request(`/api/v1/analytics/overview?days=${days}`);
+        if (overviewRes && overviewRes.ok) {
+            const overview = await overviewRes.json();
+            
+            document.getElementById('totalClicksStat').textContent = overview.total_clicks.toLocaleString();
+            document.getElementById('activeLinksStat').textContent = overview.active_links;
+            document.getElementById('avgCtrStat').textContent = overview.avg_ctr + '%';
+            
+            if (overview.top_link.short_code) {
+                document.getElementById('topLinkStat').textContent = overview.top_link.short_code;
+                document.getElementById('topLinkClicks').textContent = overview.top_link.clicks + ' clicks';
+            }
+            
+            const growthColor = overview.growth_percentage >= 0 ? 'var(--success)' : 'var(--error)';
+            const growthIcon = overview.growth_percentage >= 0 ? '↑' : '↓';
+            document.getElementById('growthStat').innerHTML = `
+                <span style="color: ${growthColor};">${growthIcon} ${Math.abs(overview.growth_percentage)}% this period</span>
+            `;
+        }
+        
+        // Load clicks over time
+        const clicksRes = await API.request(`/api/v1/analytics/clicks-over-time?days=${days}`);
+        if (clicksRes && clicksRes.ok) {
+            const clicksData = await clicksRes.json();
+            renderClicksChart(clicksData);
+        }
+        
+        // Load referrers
+        const referrersRes = await API.request('/api/v1/analytics/referrers?limit=5');
+        if (referrersRes && referrersRes.ok) {
+            const referrers = await referrersRes.json();
+            renderReferrers(referrers);
+        }
+        
+        // Load devices
+        const devicesRes = await API.request('/api/v1/analytics/devices');
+        if (devicesRes && devicesRes.ok) {
+            const devices = await devicesRes.json();
+            renderDevices(devices);
+        }
+        
+        // Load browsers
+        const browsersRes = await API.request('/api/v1/analytics/browsers');
+        if (browsersRes && browsersRes.ok) {
+            const browsers = await browsersRes.json();
+            renderBrowsers(browsers);
+        }
+        
+        // Load countries
+        const countriesRes = await API.request('/api/v1/analytics/countries?limit=5');
+        if (countriesRes && countriesRes.ok) {
+            const countries = await countriesRes.json();
+            renderCountries(countries);
+        }
+        
+        // Load top links
+        const topLinksRes = await API.request('/api/v1/analytics/top-links?limit=5');
+        if (topLinksRes && topLinksRes.ok) {
+            const topLinks = await topLinksRes.json();
+            renderTopLinks(topLinks);
+        }
+        
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+        Toast.show('Failed to load analytics', 'error');
+    }
+}
+
+function renderClicksChart(data) {
+    const canvas = document.getElementById('clicksCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const maxClicks = Math.max(...data.map(d => d.clicks), 1);
+    const width = canvas.parentElement.offsetWidth;
+    const height = 200;
+    canvas.width = width;
+    canvas.height = height;
+    
+    const paddingLeft = 35;
+    const paddingRight = 10;
+    const paddingTop = 20;
+    const paddingBottom = 30;
+    
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+    const barWidth = chartWidth / data.length;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw grid lines (horizontal)
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border-default');
+    ctx.lineWidth = 1;
+    const gridSteps = 4;
+    for (let i = 0; i <= gridSteps; i++) {
+        const y = paddingTop + (chartHeight / gridSteps) * i;
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, y);
+        ctx.lineTo(width - paddingRight, y);
+        ctx.stroke();
+    }
+    
+    // Draw bars
+    data.forEach((item, index) => {
+        const barHeight = (item.clicks / maxClicks) * chartHeight;
+        const x = paddingLeft + index * barWidth;
+        const y = paddingTop + chartHeight - barHeight;
+        
+        // Bar with gradient
+        const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+        gradient.addColorStop(0, accentColor);
+        gradient.addColorStop(1, accentColor + 'cc');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x + 1, y, barWidth - 2, barHeight);
+        
+        // Hover effect simulation - add border on taller bars
+        if (item.clicks > 0) {
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 1, y, barWidth - 2, barHeight);
+        }
+    });
+    
+    // Draw Y-axis values
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted');
+    ctx.font = '11px Inter';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    
+    for (let i = 0; i <= gridSteps; i++) {
+        const value = Math.round((maxClicks / gridSteps) * (gridSteps - i));
+        const y = paddingTop + (chartHeight / gridSteps) * i;
+        ctx.fillText(value, paddingLeft - 5, y);
+    }
+    
+    // Draw X-axis labels (smart selection)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    
+    let labelIndices = [];
+    if (data.length <= 7) {
+        // Show all dates for 7 days or less
+        labelIndices = data.map((_, i) => i);
+    } else if (data.length <= 14) {
+        // Show every other date
+        labelIndices = data.map((_, i) => i).filter(i => i % 2 === 0);
+        labelIndices.push(data.length - 1); // Always show last
+    } else if (data.length <= 31) {
+        // Show ~7 dates evenly distributed
+        const step = Math.floor(data.length / 6);
+        for (let i = 0; i < data.length; i += step) {
+            labelIndices.push(i);
+        }
+        if (!labelIndices.includes(data.length - 1)) {
+            labelIndices.push(data.length - 1);
+        }
+    } else {
+        // Show ~10 dates for 90 days
+        const step = Math.floor(data.length / 9);
+        for (let i = 0; i < data.length; i += step) {
+            labelIndices.push(i);
+        }
+        if (!labelIndices.includes(data.length - 1)) {
+            labelIndices.push(data.length - 1);
+        }
+    }
+    
+    labelIndices.forEach(index => {
+        const item = data[index];
+        const x = paddingLeft + index * barWidth + barWidth / 2;
+        const date = new Date(item.date);
+        const label = date.getDate() + '/' + (date.getMonth() + 1);
+        
+        ctx.fillText(label, x, height - paddingBottom + 5);
+    });
+    
+    // Draw value on hover (show on tallest bars)
+    const sortedData = [...data].sort((a, b) => b.clicks - a.clicks);
+    const topClicks = sortedData.slice(0, 3);
+    
+    data.forEach((item, index) => {
+        if (topClicks.includes(item) && item.clicks > 0) {
+            const x = paddingLeft + index * barWidth + barWidth / 2;
+            const barHeight = (item.clicks / maxClicks) * chartHeight;
+            const y = paddingTop + chartHeight - barHeight;
+            
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-surface');
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+            ctx.lineWidth = 1;
+            
+            const textWidth = ctx.measureText(item.clicks).width;
+            const boxPadding = 4;
+            
+            ctx.fillRect(x - textWidth/2 - boxPadding, y - 18, textWidth + boxPadding * 2, 14);
+            ctx.strokeRect(x - textWidth/2 - boxPadding, y - 18, textWidth + boxPadding * 2, 14);
+            
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+            ctx.font = 'bold 10px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(item.clicks, x, y - 11);
+        }
+    });
+}
+
+function renderReferrers(referrers) {
+    const container = document.getElementById('referrersList');
+    
+    if (referrers.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No data yet</div>';
+        return;
+    }
+    
+    const icons = {
+        'Direct': '🌐',
+        'twitter.com': '🐦',
+        'facebook.com': '📘',
+        'google.com': '🔍',
+        'instagram.com': '📷',
+    };
+    
+    container.innerHTML = referrers.slice(0, 5).map(ref => `
+        <div class="metric-row">
+            <div class="metric-label">
+                <span>${icons[ref.source] || '🔗'}</span>
+                <span>${ref.source}</span>
+            </div>
+            <div class="metric-value">${ref.clicks}</div>
+        </div>
+    `).join('');
+}
+
+function renderDevices(devices) {
+    const container = document.getElementById('devicesList');
+    
+    if (devices.length === 0 || devices.every(d => d.clicks === 0)) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No data yet</div>';
+        return;
+    }
+    
+    const icons = {
+        'desktop': '🖥',
+        'mobile': '📱',
+        'tablet': '💻',
+    };
+    
+    const colors = {
+        'desktop': 'var(--accent)',
+        'mobile': 'var(--info)',
+        'tablet': 'var(--success)',
+    };
+    
+    container.innerHTML = devices.map(device => `
+        <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-secondary);">${icons[device.device] || '📱'} ${device.device.charAt(0).toUpperCase() + device.device.slice(1)}</span>
+                <span style="font-weight: 600;">${device.percentage}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${device.percentage}%; background: ${colors[device.device]};"></div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderBrowsers(browsers) {
+    const container = document.getElementById('browsersList');
+    
+    if (browsers.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No data yet</div>';
+        return;
+    }
+    
+    container.innerHTML = browsers.slice(0, 5).map(browser => `
+        <div class="metric-row">
+            <div class="metric-label">${browser.browser}</div>
+            <div class="metric-value">${browser.percentage}%</div>
+        </div>
+    `).join('');
+}
+
+function renderCountries(countries) {
+    const container = document.getElementById('countriesList');
+    
+    if (countries.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No data yet</div>';
+        return;
+    }
+    
+    const flags = {
+        'Russia': '🇷🇺',
+        'USA': '🇺🇸',
+        'Germany': '🇩🇪',
+        'UK': '🇬🇧',
+        'France': '🇫🇷',
+        'China': '🇨🇳',
+        'Japan': '🇯🇵',
+        'Unknown': '🌍',
+    };
+    
+    container.innerHTML = countries.map(country => `
+        <div class="metric-row">
+            <div class="metric-label">
+                <span>${flags[country.country] || '🌍'}</span>
+                <span>${country.country}</span>
+            </div>
+            <div class="metric-value">${country.clicks}</div>
+        </div>
+    `).join('');
+}
+
+function renderTopLinks(links) {
+    const container = document.getElementById('topLinksList');
+    
+    if (links.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No links yet</div>';
+        return;
+    }
+    
+    container.innerHTML = links.map((link, index) => `
+        <div style="padding: 16px; border-bottom: 1px solid var(--border-default); display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+                <div style="font-size: 20px; font-weight: 700; color: var(--text-muted); min-width: 30px;">#${index + 1}</div>
+                <div style="flex: 1; min-width: 0;">
+                    <a href="/${link.short_code}" target="_blank" style="font-weight: 600; color: var(--accent);">
+                        ${window.location.origin}/${link.short_code}
+                    </a>
+                    <div style="color: var(--text-muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px;">
+                        ${link.original_url}
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: right; white-space: nowrap;">
+                <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${link.clicks}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">clicks</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load analytics on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadAnalytics();
+});
+</script>
 {% endblock %}

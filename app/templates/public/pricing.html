@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing{% endblock %}
+
+{% block main_class %}main-content--full{% endblock %}
+
+{% block extra_css %}
+<style>
+.pricing-hero {
+    text-align: center;
+    padding: 80px 32px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.pricing-hero h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.pricing-hero p {
+    font-size: 18px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.pricing-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-full);
+    padding: 6px;
+}
+
+.pricing-toggle button {
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.pricing-toggle button.active {
+    background: var(--accent);
+    color: white;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 32px;
+}
+
+.pricing-card {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    padding: 40px;
+    position: relative;
+    transition: all var(--transition-normal);
+}
+
+.pricing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.pricing-card--featured {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg);
+}
+
+.pricing-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: white;
+    padding: 6px 20px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pricing-card h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.pricing-card .description {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.pricing-price {
+    margin-bottom: 24px;
+}
+
+.pricing-price .amount {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.pricing-price .period {
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0;
+}
+
+.pricing-features li {
+    padding: 12px 0;
+    display: flex;
+    align-items: start;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-default);
+}
+
+.pricing-features li:last-child {
+    border-bottom: none;
+}
+
+.pricing-features li::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--success-light);
+    color: var(--success);
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.faq-section {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 0 32px;
+}
+
+.faq-section h2 {
+    font-size: 36px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.faq-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 20px 24px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background var(--transition-fast);
+}
+
+.faq-question:hover {
+    background: var(--bg-surface-hover);
+}
+
+.faq-answer {
+    padding: 0 24px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.faq-item.open .faq-answer {
+    padding: 0 24px 20px;
+    max-height: 500px;
+}
+
+.faq-icon {
+    transition: transform 0.3s ease;
+}
+
+.faq-item.open .faq-icon {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 768px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-hero h1 {
+        font-size: 36px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="pricing-hero">
+    <h1>Choose the right plan for you</h1>
+    <p>
+        Start free and scale as you grow. All plans include our core features 
+        with no hidden fees.
+    </p>
+    <div class="pricing-toggle">
+        <button class="active" onclick="togglePricing('monthly')">Monthly</button>
+        <button onclick="togglePricing('annual')">Annual <span style="color: var(--success); font-size: 12px; margin-left: 4px;">Save 20%</span></button>
+    </div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="pricing-grid">
+    <!-- Free Plan -->
+    <div class="pricing-card">
+        <h3>Free</h3>
+        <p class="description">Perfect for trying out Gosha</p>
+        
+        <div class="pricing-price">
+            <span class="amount">$0</span>
+            <span class="period">/month</span>
+        </div>
+        
+        <a href="/register" class="btn btn--secondary" style="width: 100%; justify-content: center;">
+            Get Started
+        </a>
+        
+        <ul class="pricing-features">
+            <li>50 links per month</li>
+            <li>Basic analytics</li>
+            <li>1 QR code</li>
+            <li>1 Bio page</li>
+            <li>7-day link history</li>
+            <li>Community support</li>
+        </ul>
+    </div>
+    
+    <!-- Pro Plan -->
+    <div class="pricing-card pricing-card--featured">
+        <div class="pricing-badge">Most Popular</div>
+        <h3>Pro</h3>
+        <p class="description">For professionals and small teams</p>
+        
+        <div class="pricing-price">
+            <span class="amount" id="proPriceMonthly">$8</span>
+            <span class="amount" id="proPriceAnnual" style="display: none;">$6.40</span>
+            <span class="period">/month</span>
+        </div>
+        
+        <a href="/register" class="btn btn--primary" style="width: 100%; justify-content: center;">
+            Start Free Trial
+        </a>
+        
+        <ul class="pricing-features">
+            <li>500 links per month</li>
+            <li>Advanced analytics</li>
+            <li>100 QR codes</li>
+            <li>5 Bio pages</li>
+            <li>Custom domains</li>
+            <li>Unlimited link history</li>
+            <li>Priority support</li>
+            <li>Remove Gosha branding</li>
+            <li>API access</li>
+        </ul>
+    </div>
+    
+    <!-- Enterprise Plan -->
+    <div class="pricing-card">
+        <h3>Enterprise</h3>
+        <p class="description">For large teams and organizations</p>
+        
+        <div class="pricing-price">
+            <span class="amount" style="font-size: 32px;">Custom</span>
+        </div>
+        
+        <a href="mailto:sales@gosha.link" class="btn btn--secondary" style="width: 100%; justify-content: center;">
+            Contact Sales
+        </a>
+        
+        <ul class="pricing-features">
+            <li>Unlimited links</li>
+            <li>Advanced analytics & reports</li>
+            <li>Unlimited QR codes</li>
+            <li>Unlimited Bio pages</li>
+            <li>Multiple custom domains</li>
+            <li>Team collaboration</li>
+            <li>SSO & SAML</li>
+            <li>Dedicated account manager</li>
+            <li>99.9% SLA</li>
+            <li>Custom integrations</li>
+            <li>White-label options</li>
+        </ul>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+            <span>What happens when I exceed my link limit?</span>
+            <span class="faq-icon">▼</span>
+        </div>
+        <div class="faq-answer">
+            When you reach your monthly link limit, you'll be prompted to upgrade to a higher plan. 
+            Your existing links will continue to work normally, but you won't be able to create new ones 
+            until the next billing cycle or until you upgrade.
+        </div>
+    </div>
+    
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Can I upgrade or downgrade at any time?</span>
+            <span class="faq-icon">▼</span>
+        </div>
+        <div class="faq-answer">
+            Yes! You can upgrade or downgrade your plan at any time. When upgrading, you'll be charged 
+            a prorated amount for the remainder of your billing cycle. When downgrading, the change 
+            will take effect at the start of your next billing cycle.
+        </div>
+    </div>
+    
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Is there a free trial for Pro?</span>
+            <span class="faq-icon">▼</span>
+        </div>
+        <div class="faq-answer">
+            Yes! We offer a 14-day free trial for the Pro plan. No credit card required. 
+            You can cancel anytime during the trial period without being charged.
+        </div>
+    </div>
+    
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Do you offer refunds?</span>
+            <span class="faq-icon">▼</span>
+        </div>
+        <div class="faq-answer">
+            Yes, we offer a 30-day money-back guarantee. If you're not satisfied with Gosha 
+            for any reason, contact us within 30 days of your purchase for a full refund.
+        </div>
+    </div>
+    
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+            <span>What payment methods do you accept?</span>
+            <span class="faq-icon">▼</span>
+        </div>
+        <div class="faq-answer">
+            We accept all major credit cards (Visa, Mastercard, American Express), 
+            PayPal, and bank transfers for Enterprise plans. All payments are processed 
+            securely through Stripe.
+        </div>
+    </div>
+    
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Can I use my own custom domain?</span>
+            <span class="faq-icon">▼</span>
+        </div>
+        <div class="faq-answer">
+            Yes! Custom domains are available on the Pro and Enterprise plans. 
+            You can connect your own domain (e.g., go.yourbrand.com) and use it 
+            for all your shortened links.
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="text-align: center; padding: 80px 32px; background: var(--bg-secondary); margin-top: 80px;">
+    <div style="max-width: 700px; margin: 0 auto;">
+        <h2 style="font-size: 40px; font-weight: 700; margin-bottom: 20px;">Still have questions?</h2>
+        <p style="font-size: 18px; color: var(--text-muted); margin-bottom: 32px;">
+            Our team is here to help. Contact us and we'll get back to you within 24 hours.
+        </p>
+        <a href="mailto:support@gosha.link" class="btn btn--primary" style="padding: 16px 40px; font-size: 16px;">
+            Contact Support
+        </a>
+    </div>
+</section>
+
+<script>
+function togglePricing(period) {
+    const buttons = document.querySelectorAll('.pricing-toggle button');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (period === 'annual') {
+        document.getElementById('proPriceMonthly').style.display = 'none';
+        document.getElementById('proPriceAnnual').style.display = 'inline';
+    } else {
+        document.getElementById('proPriceMonthly').style.display = 'inline';
+        document.getElementById('proPriceAnnual').style.display = 'none';
+    }
+}
+
+function toggleFaq(element) {
+    const faqItem = element.parentElement;
+    const isOpen = faqItem.classList.contains('open');
+    
+    // Close all other FAQs
+    document.querySelectorAll('.faq-item').forEach(item => {
+        item.classList.remove('open');
+    });
+    
+    // Toggle current FAQ
+    if (!isOpen) {
+        faqItem.classList.add('open');
+    }
+}
+</script>
+
+{% endblock %}

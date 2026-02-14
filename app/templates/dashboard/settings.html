@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid var(--border-default);
+    margin-bottom: 32px;
+    overflow-x: auto;
+}
+
+.settings-tab {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.settings-tab:hover {
+    color: var(--text-primary);
+}
+
+.settings-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.settings-section {
+    display: none;
+}
+
+.settings-section.active {
+    display: block;
+}
+
+.settings-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    margin-bottom: 24px;
+}
+
+.settings-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.settings-card p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.danger-zone {
+    border-color: var(--error);
+    background: var(--error-light);
+}
+
+.danger-zone h3 {
+    color: var(--error);
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .settings-container {
+        padding: 16px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Settings</h1>
+    <p style="color: var(--text-muted); margin-bottom: 32px;">
+        Manage your account settings and preferences
+    </p>
+
+    <!-- Tabs -->
+    <div class="settings-tabs">
+        <button class="settings-tab active" onclick="switchTab('general')">
+            👤 General
+        </button>
+        <button class="settings-tab" onclick="switchTab('security')">
+            🔒 Security
+        </button>
+        <button class="settings-tab" onclick="switchTab('appearance')">
+            🎨 Appearance
+        </button>
+        <button class="settings-tab" onclick="switchTab('notifications')">
+            🔔 Notifications
+        </button>
+    </div>
+
+    <!-- General Settings -->
+    <div id="general" class="settings-section active">
+        <div class="settings-card">
+            <h3>Profile Information</h3>
+            <p>Update your account's profile information and email address.</p>
+            
+            <form id="profileForm" onsubmit="updateProfile(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="input-label" for="username">Username</label>
+                        <input type="text" id="username" class="input" value="{{ current_user.username }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label" for="email">Email</label>
+                        <input type="email" id="email" class="input" value="{{ current_user.email }}" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn--primary" id="profileBtn">
+                    <span id="profileBtnText">Save Changes</span>
+                    <span id="profileBtnSpinner" style="display: none;">⏳</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <h3>Avatar</h3>
+            <p>Upload a profile picture or use your initials.</p>
+            
+            <div style="display: flex; align-items: center; gap: 24px;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white;">
+                    {{ current_user.username[0]|upper }}
+                </div>
+                <div>
+                    <button class="btn btn--secondary" style="margin-bottom: 8px;">
+                        Upload Photo
+                    </button>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        JPG, PNG or GIF. Max size 2MB.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div id="security" class="settings-section">
+        <div class="settings-card">
+            <h3>Change Password</h3>
+            <p>Ensure your account is using a strong password.</p>
+            
+            <form id="passwordForm" onsubmit="changePassword(event)">
+                <div class="form-group">
+                    <label class="input-label" for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" class="input" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="input-label" for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="input" required minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label" for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="input" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn--primary" id="passwordBtn">
+                    <span id="passwordBtnText">Update Password</span>
+                    <span id="passwordBtnSpinner" style="display: none;">⏳</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="settings-card">
+            <h3>Active Sessions</h3>
+            <p>Manage and logout your active sessions on other browsers and devices.</p>
+            
+            <div style="padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">🖥 Windows - Chrome</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            Current session • Last active now
+                        </div>
+                    </div>
+                    <div style="color: var(--success); font-size: 12px; font-weight: 600;">
+                        ACTIVE
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn--secondary">
+                Logout Other Sessions
+            </button>
+        </div>
+
+        <div class="settings-card">
+            <h3>Two-Factor Authentication</h3>
+            <p>Add additional security to your account using two-factor authentication.</p>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-sm);">
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 4px;">2FA Status</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">
+                        Two-factor authentication is not enabled
+                    </div>
+                </div>
+                <button class="btn btn--primary">
+                    Enable 2FA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appearance Settings -->
+    <div id="appearance" class="settings-section">
+        <div class="settings-card">
+            <h3>Theme</h3>
+            <p>Choose how Gosha looks to you. Select a theme or sync with your system.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                <div class="theme-option" data-theme="light" onclick="selectTheme('light')">
+                    <div style="aspect-ratio: 16/10; background: #FFFDF8; border: 2px solid var(--border-default); border-radius: var(--radius-sm); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                        ☀️
+                    </div>
+                    <div style="font-weight: 600; text-align: center;">Light</div>
+                </div>
+                
+                <div class="theme-option" data-theme="dark" onclick="selectTheme('dark')">
+                    <div style="aspect-ratio: 16/10; background: #031F39; border: 2px solid var(--border-default); border-radius: var(--radius-sm); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                        🌙
+                    </div>
+                    <div style="font-weight: 600; text-align: center;">Dark</div>
+                </div>
+                
+                <div class="theme-option" data-theme="system" onclick="selectTheme('system')">
+                    <div style="aspect-ratio: 16/10; background: linear-gradient(90deg, #FFFDF8 50%, #031F39 50%); border: 2px solid var(--border-default); border-radius: var(--radius-sm); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                        🖥️
+                    </div>
+                    <div style="font-weight: 600; text-align: center;">System</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <h3>Language</h3>
+            <p>Select your preferred language.</p>
+            
+            <select class="input" style="max-width: 300px;">
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Notifications Settings -->
+    <div id="notifications" class="settings-section">
+        <div class="settings-card">
+            <h3>Email Notifications</h3>
+            <p>Manage when and how you receive email notifications.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-sm); cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Link Performance</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            Get notified when a link reaches certain click milestones
+                        </div>
+                    </div>
+                    <input type="checkbox" checked>
+                </label>
+                
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-sm); cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Weekly Digest</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            Receive a weekly summary of your link analytics
+                        </div>
+                    </div>
+                    <input type="checkbox" checked>
+                </label>
+                
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-sm); cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Product Updates</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            Stay updated on new features and improvements
+                        </div>
+                    </div>
+                    <input type="checkbox">
+                </label>
+                
+                <label style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-sm); cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">Marketing Emails</div>
+                        <div style="font-size: 13px; color: var(--text-muted);">
+                            Receive tips, best practices, and promotional content
+                        </div>
+                    </div>
+                    <input type="checkbox">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-card danger-zone">
+        <h3>⚠️ Danger Zone</h3>
+        <p>Irreversible and destructive actions.</p>
+        
+        <button class="btn btn--secondary" style="border-color: var(--error); color: var(--error);" onclick="confirmDeleteAccount()">
+            Delete Account
+        </button>
+    </div>
+</div>
+
+<script>
+function switchTab(tabName) {
+    // Update tabs
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Update sections
+    document.querySelectorAll('.settings-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    document.getElementById(tabName).classList.add('active');
+}
+
+async function updateProfile(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('profileBtn');
+    const btnText = document.getElementById('profileBtnText');
+    const btnSpinner = document.getElementById('profileBtnSpinner');
+    
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline';
+    
+    const data = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+    };
+    
+    try {
+        const response = await API.request('/api/v1/users/me', {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+        
+        if (response && response.ok) {
+            Toast.show('Profile updated successfully!', 'success');
+        } else {
+            const error = await response.json();
+            Toast.show(error.detail || 'Failed to update profile', 'error');
+        }
+    } catch (error) {
+        Toast.show('Network error', 'error');
+    } finally {
+        btn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+    }
+}
+
+async function changePassword(e) {
+    e.preventDefault();
+    
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (newPassword !== confirmPassword) {
+        Toast.show('Passwords do not match', 'error');
+        return;
+    }
+    
+    const btn = document.getElementById('passwordBtn');
+    const btnText = document.getElementById('passwordBtnText');
+    const btnSpinner = document.getElementById('passwordBtnSpinner');
+    
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'inline';
+    
+    const data = {
+        current_password: document.getElementById('currentPassword').value,
+        new_password: newPassword,
+    };
+    
+    try {
+        const response = await API.request('/api/v1/users/me/password', {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+        
+        if (response && response.ok) {
+            Toast.show('Password changed successfully!', 'success');
+            document.getElementById('passwordForm').reset();
+        } else {
+            const error = await response.json();
+            Toast.show(error.detail || 'Failed to change password', 'error');
+        }
+    } catch (error) {
+        Toast.show('Network error', 'error');
+    } finally {
+        btn.disabled = false;
+        btnText.style.display = 'inline';
+        btnSpinner.style.display = 'none';
+    }
+}
+
+function selectTheme(theme) {
+    if (theme === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = prefersDark ? 'dark' : 'light';
+    }
+    
+    themeManager.apply(theme);
+    Toast.show(`Theme changed to ${theme}`, 'success');
+}
+
+function confirmDeleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        if (confirm('This will permanently delete all your links, analytics, and data. Are you absolutely sure?')) {
+            Toast.show('Account deletion is not yet implemented', 'warning');
+        }
+    }
+}
+</script>
+{% endblock %}
