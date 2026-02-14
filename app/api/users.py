@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import File, UploadFile
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -218,3 +219,82 @@ async def get_user_activity(
         current_date += timedelta(days=1)
 
     return result
+
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Upload user avatar."""
+    import os
+    import uuid
+    from pathlib import Path
+
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Only JPG, PNG, GIF, and WebP are allowed.",
+        )
+
+    # Validate file size (max 2MB)
+    contents = await file.read()
+    if len(contents) > 2 * 1024 * 1024:
+        raise HTTPException(
+            status_code=400, detail="File too large. Maximum size is 2MB."
+        )
+
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path("app/static/uploads/avatars")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = upload_dir / unique_filename
+
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    # Delete old avatar if exists
+    if current_user.avatar_url and current_user.avatar_url.startswith(
+        "/static/uploads/"
+    ):
+        old_file_path = Path("app" + current_user.avatar_url)
+        if old_file_path.exists():
+            old_file_path.unlink()
+
+    # Update user avatar URL
+    avatar_url = f"/static/uploads/avatars/{unique_filename}"
+    current_user.avatar_url = avatar_url
+    db.commit()
+
+    return {"avatar_url": avatar_url, "detail": "Avatar uploaded successfully"}
+
+
+@router.delete("/me/avatar")
+async def delete_avatar(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete user avatar."""
+    from pathlib import Path
+
+    if not current_user.avatar_url:
+        raise HTTPException(status_code=404, detail="No avatar to delete")
+
+    # Delete file if it's a local upload
+    if current_user.avatar_url.startswith("/static/uploads/"):
+        file_path = Path("app" + current_user.avatar_url)
+        if file_path.exists():
+            file_path.unlink()
+
+    # Clear avatar URL
+    current_user.avatar_url = None
+    db.commit()
+
+    return {"detail": "Avatar deleted successfully"}
