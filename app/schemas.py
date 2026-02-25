@@ -27,12 +27,23 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contain uppercase letter")
-        if not re.search(r"[0-9]", v):
-            raise ValueError("Password must contain digit")
+        """Validate password strength with a unified error message."""
+        has_min_length = len(v) >= 8
+        has_uppercase = bool(re.search(r"[A-Z]", v))
+        has_digit = bool(re.search(r"[0-9]", v))
+
+        if not has_min_length or not has_uppercase or not has_digit:
+            missing = []
+            if not has_min_length:
+                missing.append("at least 8 characters")
+            if not has_uppercase:
+                missing.append("an uppercase letter")
+            if not has_digit:
+                missing.append("a number")
+            raise ValueError(
+                f"Make your password more secure: use {', '.join(missing)}. "
+                "Use numbers, letters, and capital letters."
+            )
         return v
 
 

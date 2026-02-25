@@ -107,7 +107,24 @@ async function handleRegister(e) {
             setTimeout(() => window.location.href = '/dashboard', 500);
         } else {
             const error = await response.json();
-            Toast.show(error.detail || 'Registration failed', 'error');
+            let errorMessage = 'Registration failed';
+            
+            // Handle 422 validation errors (Pydantic returns detail as array)
+            if (error.detail && Array.isArray(error.detail)) {
+                // Extract password-related errors or use first error
+                const passwordError = error.detail.find(e => 
+                    e.loc && e.loc.includes('password')
+                );
+                if (passwordError && passwordError.msg) {
+                    errorMessage = passwordError.msg;
+                } else if (error.detail[0] && error.detail[0].msg) {
+                    errorMessage = error.detail[0].msg;
+                }
+            } else if (error.detail) {
+                errorMessage = error.detail;
+            }
+            
+            Toast.show(errorMessage, 'error');
             submitBtn.disabled = false;
             btnText.style.display = 'inline';
             btnSpinner.style.display = 'none';
