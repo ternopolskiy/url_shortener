@@ -16,7 +16,6 @@ TestingSessionLocal = sessionmaker(bind=engine)
 
 @pytest.fixture(autouse=True)
 def setup_db():
-    """Пересоздаём таблицы перед каждым тестом."""
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
@@ -33,7 +32,6 @@ def db_session():
 
 @pytest.fixture
 def client(db_session):
-    """TestClient с подменённой зависимостью БД."""
     def override_get_db():
         yield db_session
 

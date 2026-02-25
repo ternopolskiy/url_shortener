@@ -5,11 +5,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.api import admin, analytics, auth, links, redirect, users
+from app.api import admin, analytics, auth, links, redirect, users, qr
 from app.config import settings
 from app.core.dependencies import get_current_user, require_admin, get_current_user_optional
 from app.database import Base, engine, get_db
 from app.models import User
+from app.migrations import run_all_migrations
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -41,6 +42,7 @@ app.include_router(links.router)
 app.include_router(users.router)
 app.include_router(analytics.router)
 app.include_router(admin.router)
+app.include_router(qr.router)
 
 # ===== Page Routes =====
 
@@ -127,6 +129,21 @@ async def analytics_page(
             "request": request,
             "current_user": current_user,
             "active_page": "analytics",
+        },
+    )
+
+
+@app.get("/qr-codes")
+async def qr_codes_page(
+    request: Request, current_user: User = Depends(get_current_user)
+):
+    """QR Codes page (requires authentication)."""
+    return templates.TemplateResponse(
+        "dashboard/qr_codes.html",
+        {
+            "request": request,
+            "current_user": current_user,
+            "active_page": "qr-codes",
         },
     )
 
@@ -243,34 +260,17 @@ async def health():
 
 # Create admin user on startup if not exists
 @app.on_event("startup")
-async def create_admin():
+async def startup_migrations():
+    # Run database migrations
+    run_all_migrations()
+    
+    # Create admin user
     from app.core.security import hash_password
     from app.database import SessionLocal
     from app.models import User, UserRole
 
     db = SessionLocal()
     try:
-        # Run migration for language column if needed
-        import sqlite3
-        
-        conn = sqlite3.connect(settings.DATABASE_URL.replace("sqlite:///./", ""))
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute("PRAGMA table_info(users)")
-            columns = [column[1] for column in cursor.fetchall()]
-            
-            if 'language' not in columns:
-                print("🔄 Running migration: Adding 'language' column...")
-                cursor.execute("ALTER TABLE users ADD COLUMN language VARCHAR(5) DEFAULT 'en'")
-                conn.commit()
-                print("✅ Migration completed: 'language' column added")
-        except Exception as e:
-            print(f"⚠️  Migration check: {e}")
-        finally:
-            conn.close()
-        
-        # Create admin user if not exists
         admin = db.query(User).filter(User.role == UserRole.ADMIN).first()
         if not admin:
             admin = User(

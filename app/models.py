@@ -42,7 +42,7 @@ class User(Base):
     urls = relationship(
         "URL", back_populates="owner", cascade="all, delete-orphan"
     )
-    qr_codes = relationship("QRCode", back_populates="owner")
+    qr_codes = relationship("QRCode", back_populates="owner", cascade="all, delete-orphan")
     bio_pages = relationship("BioPage", back_populates="owner")
 
     @property
@@ -113,15 +113,47 @@ class QRCode(Base):
     __tablename__ = "qr_codes"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    url_id = Column(Integer, ForeignKey("urls.id"), nullable=True)
-    qr_data = Column(Text, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    # Привязка к ссылке (опционально — можно создать QR для произвольного URL)
+    url_id = Column(Integer, ForeignKey("urls.id"), nullable=True, index=True)
+
+    # Контент QR-кода (URL, на который ведёт)
+    content = Column(String(2000), nullable=False)
+
+    # Название (для галереи)
+    title = Column(String(200), nullable=True)
+
+    # Изображение QR в base64 (PNG)
+    qr_image_base64 = Column(Text, nullable=False)
+
+    # Настройки стиля (сохраняем для возможности пересоздания)
     foreground_color = Column(String(7), default="#000000")
     background_color = Column(String(7), default="#FFFFFF")
-    style = Column(String(20), default="square")
-    logo_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    style = Column(String(20), default="square")  # square | rounded | dots | circle
 
+    # Размер модуля (box_size в библиотеке qrcode)
+    box_size = Column(Integer, default=10)
+    # Ширина границы
+    border_size = Column(Integer, default=4)
+
+    # Логотип (base64 маленькой картинки, вставленной в центр)
+    logo_base64 = Column(Text, nullable=True)
+
+    # Error correction level: L, M, Q, H
+    error_correction = Column(String(1), default="M")
+
+    # Счётчик скачиваний
+    downloads_count = Column(Integer, default=0)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Legacy column (kept for backward compatibility, now nullable)
+    qr_data = Column(String(2000), nullable=True)
+
+    # Relationships
     owner = relationship("User", back_populates="qr_codes")
     url = relationship("URL", back_populates="qr_code")
 

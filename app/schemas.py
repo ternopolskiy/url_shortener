@@ -116,3 +116,128 @@ class URLUpdateRequest(BaseModel):
     title: Optional[str] = None
     is_active: Optional[bool] = None
     tags: Optional[str] = None
+
+
+# ============================================
+# QR CODE SCHEMAS
+# ============================================
+
+class QRCodeCreateRequest(BaseModel):
+    """Запрос на создание QR-кода."""
+    content: str  # URL или текст для кодирования
+    title: Optional[str] = None
+    url_id: Optional[int] = None  # привязка к существующей ссылке
+
+    # Стилизация
+    foreground_color: str = "#000000"
+    background_color: str = "#FFFFFF"
+    style: str = "square"  # square | rounded | dots | circle
+    box_size: int = 10
+    border_size: int = 4
+    error_correction: str = "M"  # L | M | Q | H
+
+    # Логотип (base64 строка, опционально)
+    logo_base64: Optional[str] = None
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Содержимое QR-кода не может быть пустым")
+        if len(v) > 2000:
+            raise ValueError("Максимальная длина — 2000 символов")
+        return v
+
+    @field_validator("foreground_color", "background_color")
+    @classmethod
+    def validate_color(cls, v: str) -> str:
+        if not re.match(r"^#[0-9A-Fa-f]{6}$", v):
+            raise ValueError("Цвет должен быть в формате #RRGGBB")
+        return v.upper()
+
+    @field_validator("style")
+    @classmethod
+    def validate_style(cls, v: str) -> str:
+        allowed = ["square", "rounded", "dots", "circle"]
+        if v not in allowed:
+            raise ValueError(f"Стиль должен быть одним из: {', '.join(allowed)}")
+        return v
+
+    @field_validator("box_size")
+    @classmethod
+    def validate_box_size(cls, v: int) -> int:
+        if not (5 <= v <= 20):
+            raise ValueError("Размер модуля: от 5 до 20")
+        return v
+
+    @field_validator("border_size")
+    @classmethod
+    def validate_border_size(cls, v: int) -> int:
+        if not (0 <= v <= 10):
+            raise ValueError("Размер границы: от 0 до 10")
+        return v
+
+    @field_validator("error_correction")
+    @classmethod
+    def validate_error_correction(cls, v: str) -> str:
+        if v not in ("L", "M", "Q", "H"):
+            raise ValueError("Error correction: L, M, Q или H")
+        return v
+
+
+class QRCodePreviewRequest(BaseModel):
+    """Запрос на превью (без сохранения в БД)."""
+    content: str = "https://example.com"
+    foreground_color: str = "#000000"
+    background_color: str = "#FFFFFF"
+    style: str = "square"
+    box_size: int = 10
+    border_size: int = 4
+    error_correction: str = "M"
+    logo_base64: Optional[str] = None
+
+
+class QRCodeResponse(BaseModel):
+    """Ответ с данными QR-кода."""
+    id: int
+    content: str
+    title: Optional[str]
+    url_id: Optional[int]
+    qr_image_base64: str
+    foreground_color: str
+    background_color: str
+    style: str
+    box_size: int
+    border_size: int
+    error_correction: str
+    logo_base64: Optional[str]
+    downloads_count: int
+    created_at: str
+    updated_at: str
+
+    # Дополнительные поля (если привязана ссылка)
+    linked_short_code: Optional[str] = None
+    linked_clicks: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class QRCodeListResponse(BaseModel):
+    """Список QR-кодов с пагинацией."""
+    items: list[QRCodeResponse]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+
+
+class QRCodeUpdateRequest(BaseModel):
+    """Обновление QR-кода (только title)."""
+    title: Optional[str] = None
+
+
+class QRCodePreviewResponse(BaseModel):
+    """Ответ с превью (только изображение)."""
+    qr_image_base64: str

@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+
+{% block title %}QR Codes{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="padding: 32px;">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <div>
+            <h1 style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">📱 QR Codes</h1>
+            <p style="color: var(--text-muted);">Generate custom QR codes for your links</p>
+        </div>
+        <button class="btn btn--primary" onclick="openCreateModal()">
+            + New QR Code
+        </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <input
+                type="text"
+                id="searchInput"
+                class="input"
+                placeholder="🔍 Search QR codes..."
+                style="flex: 1; min-width: 250px;"
+                oninput="loadQRCodes()"
+            >
+            <select id="perPageSelect" class="input" style="width: 150px;" onchange="loadQRCodes()">
+                <option value="12">12 per page</option>
+                <option value="24">24 per page</option>
+                <option value="50">50 per page</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- QR Codes Grid -->
+    <div id="qrCodesGrid" class="qr-codes-grid">
+        <div style="text-align: center; padding: 60px; color: var(--text-muted); grid-column: 1/-1;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+            <p>Loading QR codes...</p>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination" style="display: none; margin-top: 32px; justify-content: center; gap: 8px;">
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="createModal" class="modal" style="display: none;">
+    <div class="modal__overlay" onclick="closeCreateModal()"></div>
+    <div class="modal__content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 24px; font-weight: 700;">🎨 Create QR Code</h2>
+            <button class="btn btn--ghost" onclick="closeCreateModal()" style="padding: 8px;">✕</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+            <!-- Left: Settings -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Content URL -->
+                <div>
+                    <label class="input-label">Content URL *</label>
+                    <input
+                        type="text"
+                        id="qrContent"
+                        class="input"
+                        placeholder="https://example.com"
+                        oninput="debouncePreview()"
+                    >
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                        The URL or text to encode in the QR code
+                    </p>
+                </div>
+
+                <!-- Title -->
+                <div>
+                    <label class="input-label">Title (optional)</label>
+                    <input
+                        type="text"
+                        id="qrTitle"
+                        class="input"
+                        placeholder="My QR Code"
+                    >
+                </div>
+
+                <!-- Style Selection -->
+                <div>
+                    <label class="input-label">Style</label>
+                    <div class="style-options" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px;">
+                        <button class="style-option" data-style="square" onclick="selectStyle('square')">
+                            <div class="style-preview square"></div>
+                            <span>Square</span>
+                        </button>
+                        <button class="style-option" data-style="rounded" onclick="selectStyle('rounded')">
+                            <div class="style-preview rounded"></div>
+                            <span>Rounded</span>
+                        </button>
+                        <button class="style-option" data-style="dots" onclick="selectStyle('dots')">
+                            <div class="style-preview dots"></div>
+                            <span>Dots</span>
+                        </button>
+                        <button class="style-option" data-style="circle" onclick="selectStyle('circle')">
+                            <div class="style-preview circle"></div>
+                            <span>Circle</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Colors -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label class="input-label">Foreground Color</label>
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <input type="color" id="fgColorPicker" value="#000000" onchange="updateColor('foreground', this.value)" style="width: 50px; height: 40px; border: 1px solid var(--border-default); border-radius: var(--radius-xs); cursor: pointer;">
+                            <input type="text" id="fgColorText" class="input" value="#000000" onchange="updateColor('foreground', this.value)" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="input-label">Background Color</label>
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <input type="color" id="bgColorPicker" value="#FFFFFF" onchange="updateColor('background', this.value)" style="width: 50px; height: 40px; border: 1px solid var(--border-default); border-radius: var(--radius-xs); cursor: pointer;">
+                            <input type="text" id="bgColorText" class="input" value="#FFFFFF" onchange="updateColor('background', this.value)" style="flex: 1;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Size Sliders -->
+                <div>
+                    <label class="input-label">Module Size: <span id="boxSizeValue">10</span></label>
+                    <input
+                        type="range"
+                        id="boxSizeSlider"
+                        min="5"
+                        max="20"
+                        value="10"
+                        oninput="updateSlider('boxSize', this.value)"
+                        style="width: 100%; margin-top: 8px;"
+                    >
+                </div>
+
+                <div>
+                    <label class="input-label">Border Size: <span id="borderSizeValue">4</span></label>
+                    <input
+                        type="range"
+                        id="borderSizeSlider"
+                        min="0"
+                        max="10"
+                        value="4"
+                        oninput="updateSlider('borderSize', this.value)"
+                        style="width: 100%; margin-top: 8px;"
+                    >
+                </div>
+
+                <!-- Error Correction -->
+                <div>
+                    <label class="input-label">Error Correction</label>
+                    <select id="errorCorrection" class="input" onchange="debouncePreview()">
+                        <option value="L">Low (7%)</option>
+                        <option value="M" selected>Medium (15%)</option>
+                        <option value="Q">Quartile (25%)</option>
+                        <option value="H">High (30%)</option>
+                    </select>
+                </div>
+
+                <!-- Logo Upload -->
+                <div>
+                    <label class="input-label">Logo (optional)</label>
+                    <div style="margin-top: 8px;">
+                        <input
+                            type="file"
+                            id="logoUpload"
+                            accept="image/png,image/jpeg,image/gif,image/webp"
+                            onchange="handleLogoUpload(event)"
+                            style="display: none;"
+                        >
+                        <button class="btn btn--secondary" onclick="document.getElementById('logoUpload').click()" style="width: 100%;">
+                            📁 Upload Logo
+                        </button>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                            PNG, JPG, GIF, WebP. Max 500KB
+                        </p>
+                        <div id="logoPreview" style="display: none; margin-top: 12px; text-align: center;">
+                            <img id="logoPreviewImg" src="" alt="Logo" style="max-height: 60px; border-radius: var(--radius-xs);">
+                            <button onclick="removeLogo()" class="btn btn--ghost" style="padding: 4px 8px; font-size: 12px; color: var(--error); margin-top: 8px;">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Preview -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="position: sticky; top: 0;">
+                    <label class="input-label" style="text-align: center; margin-bottom: 16px;">Live Preview</label>
+                    <div id="previewContainer" class="qr-preview-container" style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                        <div id="qrPreview" style="width: 256px; height: 256px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: var(--radius-lg); border: 2px dashed var(--border-default);">
+                            <p style="color: var(--text-muted);">Enter URL to preview</p>
+                        </div>
+                        <div id="previewLoading" style="display: none; color: var(--text-muted);">Generating preview...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-default);">
+            <button class="btn btn--secondary" onclick="closeCreateModal()">Cancel</button>
+            <button class="btn btn--primary" onclick="createQRCode()">Create QR Code</button>
+        </div>
+    </div>
+</div>
+
+<!-- View/Download Modal -->
+<div id="viewModal" class="modal" style="display: none;">
+    <div class="modal__overlay" onclick="closeViewModal()"></div>
+    <div class="modal__content" style="max-width: 500px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 24px; font-weight: 700;" id="viewTitle">QR Code</h2>
+            <button class="btn btn--ghost" onclick="closeViewModal()" style="padding: 8px;">✕</button>
+        </div>
+
+        <div style="text-align: center;">
+            <img id="viewQRImage" src="" alt="QR Code" style="max-width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-default);">
+            
+            <div style="margin: 24px 0; padding: 16px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Content</p>
+                <p id="viewContent" style="font-size: 14px; word-break: break-all;"></p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button class="btn btn--primary" onclick="downloadQR('png')">
+                    ⬇️ Download PNG
+                </button>
+                <button class="btn btn--secondary" onclick="downloadQR('svg')">
+                    ⬇️ Download SVG
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 16px; margin-top: 16px; font-size: 13px; color: var(--text-muted);">
+                <span>📥 Downloads: <strong id="viewDownloads">0</strong></span>
+                <span>📅 Created: <strong id="viewCreated"></strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.qr-codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.qr-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+}
+
+.qr-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+
+.qr-card__image {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.qr-card__image img {
+    max-width: 100%;
+    height: auto;
+}
+
+.qr-card__title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qr-card__content {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 12px;
+}
+
+.qr-card__meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-top: 12px;
+    border-top: 1px solid var(--border-default);
+}
+
+.qr-card__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.style-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    border: 2px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.style-option:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-surface-hover);
+}
+
+.style-option.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+.style-option span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.style-preview {
+    width: 32px;
+    height: 32px;
+    background: var(--text-primary);
+}
+
+.style-preview.square {
+    border-radius: 4px;
+}
+
+.style-preview.rounded {
+    border-radius: 8px;
+}
+
+.style-preview.dots {
+    border-radius: 50%;
+}
+
+.style-preview.circle {
+    border-radius: 50%;
+    transform: scale(0.8);
+}
+
+.qr-preview-container {
+    min-height: 300px;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal__content {
+    position: relative;
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+}
+
+.pagination button {
+    padding: 8px 16px;
+    border: 1px solid var(--border-default);
+    background: var(--bg-surface);
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.pagination button:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-surface-hover);
+}
+
+.pagination button.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 16px;
+    }
+    
+    .qr-codes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .modal__content {
+        padding: 20px;
+    }
+}
+</style>
+
+<script src="/static/js/qr.js"></script>
+{% endblock %}
